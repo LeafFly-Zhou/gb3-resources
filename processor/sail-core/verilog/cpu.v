@@ -468,7 +468,7 @@ module cpu(
 		);
 
 	//Branch Predictor
-	branch_history_table_predictor bht(
+	branch_history_predictor bhp(
 		.clk(clk),
 		.actual_branch_decision(actual_branch_decision),
 		.branch_decode_sig(cont_mux_out[6]),

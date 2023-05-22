@@ -1,8 +1,8 @@
 /*
- *		Branch history table predictor
+ *		Branch history predictor
  */
 
-module branch_history_table_predictor(
+module branch_history_predictor(
 		clk,
 		actual_branch_decision,
 		branch_decode_sig,
@@ -36,7 +36,7 @@ module branch_history_table_predictor(
 	 */
 	// A branch history array with 16 elements, each holding a saturating
 	// counter
-	reg [1:0]		branch_history [15:0];
+	reg [1:0]		branch_history_table [3:0];
 	reg				branch_mem_sig_reg;
 	// Declare as unsigned int using reg
 	reg [3:0]		pc_branch_target_addr;
@@ -55,9 +55,8 @@ module branch_history_table_predictor(
 	 *	modules in the design and to thereby set the values.
 	 */
 	initial begin
-		// pc_branch_target_addr = 0;
 		for (i=0; i < 16; i=i+1)
-			branch_history[i] = 2'b10;
+			branch_history_table[i] = 2'b10;
 	end
 
 	always @(negedge clk) begin
@@ -69,17 +68,19 @@ module branch_history_table_predictor(
 	 *	therefore can use branch_mem_sig as every branch is followed by
 	 *	a bubble, so a 0 to 1 transition
 	 */
+
 	// Extract the lower 4 bits as target addr for the bht
 	assign pc_branch_target_addr = pc_branch_addr[3:0];
 	assign update_branch_target_addr = update_branch_addr[3:0]; 
-	// Uodate the branch_history when an actual branch decision is received
+
+	// Update the branch_history when an actual branch decision is received
 	always @(posedge clk) begin
 		if (branch_mem_sig_reg) begin
-			branch_history[update_branch_target_addr] <= (actual_branch_decision == 1'b1) ? (branch_history[update_branch_target_addr]+1) : (branch_history[update_branch_target_addr]-1);
+			branch_history_table[update_branch_target_addr] <= (actual_branch_decision == 1'b1) ? (branch_history_table[update_branch_target_addr]+1) : (branch_history_table[update_branch_target_addr]-1);
 		end
 	end
 	
-	assign prediction = branch_history[pc_branch_target_addr][1] & branch_decode_sig;
+	assign prediction = branch_history_table[pc_branch_target_addr][1] & branch_decode_sig;
 	assign out_branch_addr = pc_branch_addr + offset;
 endmodule
 
