@@ -36,7 +36,7 @@ module branch_history_predictor(
 	 */
 	// A branch history array with 16 elements, each holding a saturating
 	// counter
-	reg [1:0]		branch_history_table [3:0];
+	reg [1:0]		branch_history_table [15:0];
 	reg				branch_mem_sig_reg;
 	// Declare as unsigned int using reg
 	reg [3:0]		pc_branch_target_addr;
