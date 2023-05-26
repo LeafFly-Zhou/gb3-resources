@@ -468,6 +468,19 @@ module cpu(
 		);
 
 	//Branch Predictor
+	// Global branch Predictor
+	global_history_predictor ghp(
+		.clk(clk),
+		.actual_branch_decision(actual_branch_decision),
+		.branch_decode_sig(cont_mux_out[6]),
+		.branch_mem_sig(ex_mem_out[6]),
+		.pc_branch_addr(if_id_out[31:0]),
+		.offset(imm_out),
+		.out_branch_addr(branch_predictor_addr),
+		.prediction(predict)
+		);
+	/*
+	// Local branch Predictor
 	branch_history_predictor bhp(
 		.clk(clk),
 		.actual_branch_decision(actual_branch_decision),
@@ -480,7 +493,6 @@ module cpu(
 		.prediction(predict)
 		);
 
-	/*
 	branch_predictor branch_predictor_FSM(
 			.clk(clk),
 			.actual_branch_decision(actual_branch_decision),
