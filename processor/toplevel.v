@@ -46,21 +46,43 @@ module top (led);
 
 	wire		clk_proc;
 	wire		data_clk_stall;
+	wire		data_mem_enable;
 	
 	wire		clk;
-	reg		ENCLKHF		= 1'b1;	// Plock enable
-	reg		CLKHF_POWERUP	= 1'b1;	// Power up the HFOSC circuit
+	wire		data_mem_gclk;
+	
+	wire 		lf_clk;
+	reg		clkhf_enable;	// Plock enable
+	reg		clkhf_powerup;
+
+	reg			CLKLF_POWERUP	= 1'b1;	// Power up the LFOSC circuit
+	reg			CLKLF_ENABLE=1'b1;
+	wire [31:0]	rdsp;
 
 
 	/*
 	 *	Use the iCE40's hard primitive for the clock source.
 	 */
+
+	SB_LFOSC lfosc_inst(
+		.CLKLFEN(CLKLF_ENABLE),
+		.CLKLF(lf_clk),
+		.CLKLFPU(CLKLF_POWERUP)
+	);
+
 	SB_HFOSC #(.CLKHF_DIV("0b11")) OSCInst0 (
-		.CLKHFEN(ENCLKHF),
-		.CLKHFPU(CLKHF_POWERUP),
+		.CLKHFEN(clkhf_enable),
+		.CLKHFPU(clkhf_powerup),
 		.CLKHF(clk)
 	);
 
+	pmu pmu_inst(
+		.slow_clk(lf_clk),
+		.fast_clk(clk),
+		.clkhf_enable(clkhf_enable),
+		.clkhf_powerup(clkhf_powerup),
+		.rdsp(rdsp)
+	);
 	/*
 	 *	Memory interface
 	 */
@@ -73,6 +95,11 @@ module top (led);
 	wire		data_memread;
 	wire[3:0]	data_sign_mask;
 
+	gatedclk data_mem_gclk_inst(
+		.clk(clk),
+		.enable(data_mem_enable),
+		.gclk(data_mem_gclk)
+	);
 
 	cpu processor(
 		.clk(clk_proc),
@@ -83,7 +110,8 @@ module top (led);
 		.data_mem_WrData(data_WrData),
 		.data_mem_memwrite(data_memwrite),
 		.data_mem_memread(data_memread),
-		.data_mem_sign_mask(data_sign_mask)
+		.data_mem_sign_mask(data_sign_mask),
+		.rdsp(rdsp)
 	);
 
 	instruction_memory inst_mem( 
@@ -92,7 +120,7 @@ module top (led);
 	);
 
 	data_mem data_mem_inst(
-			.clk(clk),
+			.clk(data_mem_gclk),
 			.addr(data_addr),
 			.write_data(data_WrData),
 			.memwrite(data_memwrite), 
@@ -104,4 +132,5 @@ module top (led);
 		);
 
 	assign clk_proc = (data_clk_stall) ? 1'b1 : clk;
+	assign data_mem_enable = data_memwrite | data_memread | data_clk_stall;
 endmodule
