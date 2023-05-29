@@ -481,6 +481,7 @@ module cpu(
 		.out_branch_addr(branch_predictor_addr),
 		.prediction(predict)
 	);
+	*/
 
 	// Global branch Predictor
 	global_history_predictor ghp(
@@ -494,7 +495,7 @@ module cpu(
 		.prediction(predict)
 		);
 
-	*/
+	/*
 	// Local branch Predictor
 	branch_history_predictor bhp(
 		.clk(clk),
@@ -508,7 +509,6 @@ module cpu(
 		.prediction(predict)
 		);
 
-	/*
    // Base branch predictor
 	branch_predictor branch_predictor_FSM(
 			.clk(clk),
