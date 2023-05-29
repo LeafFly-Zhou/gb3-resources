@@ -38,6 +38,8 @@ module branch_history_predictor(
 	// counter
 	reg [1:0]		branch_history_table [15:0];
 	reg				branch_mem_sig_reg;
+	reg [3:0]		update_branch_addr_reg;
+	reg				actual_branch_decision_reg;
 	// Declare as unsigned int using reg
 	reg [3:0]		pc_branch_target_addr;
 	reg [3:0]		update_branch_target_addr;
@@ -61,6 +63,9 @@ module branch_history_predictor(
 
 	always @(negedge clk) begin
 		branch_mem_sig_reg <= branch_mem_sig;
+		update_branch_addr_reg <= update_branch_addr[3:0];
+		actual_branch_decision_reg <= actual_branch_decision;
+
 	end
 
 	/*
@@ -69,18 +74,29 @@ module branch_history_predictor(
 	 *	a bubble, so a 0 to 1 transition
 	 */
 
-	// Extract the lower 4 bits as target addr for the bht
-	assign pc_branch_target_addr = pc_branch_addr[3:0];
-	assign update_branch_target_addr = update_branch_addr[3:0]; 
-
 	// Update the branch_history when an actual branch decision is received
 	always @(posedge clk) begin
 		if (branch_mem_sig_reg) begin
-			branch_history_table[update_branch_target_addr] <= (actual_branch_decision == 1'b1) ? (branch_history_table[update_branch_target_addr]+1) : (branch_history_table[update_branch_target_addr]-1);
+			if (actual_branch_decision_reg == 1'b1) begin
+				if (branch_history_table[update_branch_addr_reg] < 2'b11) begin
+					branch_history_table[update_branch_addr_reg] <= branch_history_table[update_branch_addr_reg] + 1;
+				end
+				else begin
+					branch_history_table[update_branch_addr_reg] <= 2'b11;
+				end
+			end
+			else begin
+				if (branch_history_table[update_branch_addr_reg] > 2'b00) begin
+					branch_history_table[update_branch_addr_reg] <= branch_history_table[update_branch_addr_reg] - 1;
+				end
+				else begin
+					branch_history_table[update_branch_addr_reg] <= 2'b00;
+				end
+			end
 		end
 	end
 	
-	assign prediction = branch_history_table[pc_branch_target_addr][1] & branch_decode_sig;
+	assign prediction = branch_history_table[pc_branch_addr[3:0]][1] & branch_decode_sig;
 	assign out_branch_addr = pc_branch_addr + offset;
 endmodule
 
