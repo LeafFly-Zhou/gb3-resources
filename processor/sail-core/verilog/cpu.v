@@ -468,7 +468,6 @@ module cpu(
 		);
 
 	//Branch Predictor
-	/*
 	// Tournament branch predictor
 	tournament_branch_predictor tbp(
 		.clk(clk),
@@ -481,8 +480,8 @@ module cpu(
 		.out_branch_addr(branch_predictor_addr),
 		.prediction(predict)
 	);
-	*/
 
+	/*
 	// Global branch Predictor
 	global_history_predictor ghp(
 		.clk(clk),
