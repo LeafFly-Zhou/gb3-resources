@@ -472,6 +472,47 @@ module cpu(
 		);
 
 	//Branch Predictor
+	// Tournament branch predictor
+	tournament_branch_predictor tbp(
+		.clk(clk),
+		.actual_branch_decision(actual_branch_decision),
+		.branch_decode_sig(cont_mux_out[6]),
+		.branch_mem_sig(ex_mem_out[6]),
+		.pc_branch_addr(if_id_out[31:0]),
+		.offset(imm_out),
+		.update_branch_addr(ex_mem_out[40:9]),
+		.out_branch_addr(branch_predictor_addr),
+		.prediction(predict)
+	);
+
+	/*
+	// Global branch Predictor
+	global_history_predictor ghp(
+		.clk(clk),
+		.actual_branch_decision(actual_branch_decision),
+		.branch_decode_sig(cont_mux_out[6]),
+		.branch_mem_sig(ex_mem_out[6]),
+		.pc_branch_addr(if_id_out[31:0]),
+		.offset(imm_out),
+		.out_branch_addr(branch_predictor_addr),
+		.prediction(predict)
+		);
+
+	/*
+	// Local branch Predictor
+	branch_history_predictor bhp(
+		.clk(clk),
+		.actual_branch_decision(actual_branch_decision),
+		.branch_decode_sig(cont_mux_out[6]),
+		.branch_mem_sig(ex_mem_out[6]),
+		.pc_branch_addr(if_id_out[31:0]),
+		.offset(imm_out),
+		.update_branch_addr(ex_mem_out[40:9]),
+		.out_branch_addr(branch_predictor_addr),
+		.prediction(predict)
+		);
+
+   // Base branch predictor
 	branch_predictor branch_predictor_FSM(
 			.clk(clk),
 			.actual_branch_decision(actual_branch_decision),
@@ -482,6 +523,7 @@ module cpu(
 			.branch_addr(branch_predictor_addr),
 			.prediction(predict)
 		);
+	*/
 
 	mux2to1 branch_predictor_mux(
 			.input0(fence_mux_out),
