@@ -51,24 +51,15 @@ module top (led);
 	wire		clk;
 	wire		data_mem_gclk;
 	
-	wire 		lf_clk;
-	reg		clkhf_enable;	// Plock enable
-	reg		clkhf_powerup;
+	wire		clkhf_enable;	// Plock enable
+	wire		clkhf_powerup;
 
-	reg			CLKLF_POWERUP	= 1'b1;	// Power up the LFOSC circuit
-	reg			CLKLF_ENABLE=1'b1;
 	wire [31:0]	rdsp;
 
 
 	/*
 	 *	Use the iCE40's hard primitive for the clock source.
 	 */
-
-	SB_LFOSC lfosc_inst(
-		.CLKLFEN(CLKLF_ENABLE),
-		.CLKLF(lf_clk),
-		.CLKLFPU(CLKLF_POWERUP)
-	);
 
 	SB_HFOSC #(.CLKHF_DIV("0b11")) OSCInst0 (
 		.CLKHFEN(clkhf_enable),
@@ -77,8 +68,7 @@ module top (led);
 	);
 
 	pmu pmu_inst(
-		.slow_clk(lf_clk),
-		.fast_clk(clk),
+		.fast_clk(clk_proc),
 		.clkhf_enable(clkhf_enable),
 		.clkhf_powerup(clkhf_powerup),
 		.rdsp(rdsp)
