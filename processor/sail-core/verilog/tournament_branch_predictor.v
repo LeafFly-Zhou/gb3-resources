@@ -10,8 +10,11 @@ module tournament_branch_predictor(
 		pc_branch_addr,
 		offset,
 		update_branch_addr,
+		mispredict,
 		out_branch_addr,
 		prediction
+		// For debug and simulation purposes, hence disabled
+		// selected_predictor
 	);
 
 	/*
@@ -24,12 +27,15 @@ module tournament_branch_predictor(
 	input [31:0]	pc_branch_addr;
 	input [31:0]    offset;
 	input [31:0]	update_branch_addr;
+	input			mispredict;
 
 	/*
 	 *	outputs
 	 */
 	output [31:0]	out_branch_addr;
 	output			prediction;
+	// For debug and simulation purposes, hence disabled
+	// output			selected_predictor;
 
 	/*
 	 *	internal state
@@ -55,6 +61,7 @@ module tournament_branch_predictor(
 	// counter
 	reg [1:0]		tournament_history_table [16:0];
 	reg				prev_predictor;	
+	reg				mispredict_reg;
 
 	// For initialising branch_history
 	integer			i;
@@ -87,6 +94,7 @@ module tournament_branch_predictor(
 		update_branch_addr_reg <= update_branch_addr[3:0];
 		prev_global_history <= curr_global_history;
 		prev_predictor <= tournament_history_table[update_branch_addr[3:0]][1];
+		mispredict_reg <= mispredict;
 	end
 
 	/*
@@ -137,16 +145,9 @@ module tournament_branch_predictor(
 				end
 			end
 
-			// Update tournament predictor
-			if (prev_predictor == actual_branch_decision_reg) begin
-				if (tournament_history_table[update_branch_addr_reg] < 2'b11) begin
-					tournament_history_table[update_branch_addr_reg] <= tournament_history_table[update_branch_addr_reg] + 1;
-				end
-				else begin
-					tournament_history_table[update_branch_addr_reg] <= 2'b11;
-				end
-			end
-			else begin
+			// Update tournament predictor by looking at previous predictor
+			// and mispredict flag
+			if (prev_predictor == mispredict_reg) begin
 				if (tournament_history_table[update_branch_addr_reg] > 2'b00) begin
 					tournament_history_table[update_branch_addr_reg] <= tournament_history_table[update_branch_addr_reg] - 1;
 				end
@@ -154,12 +155,23 @@ module tournament_branch_predictor(
 					tournament_history_table[update_branch_addr_reg] <= 2'b00;
 				end
 			end
+			else begin
+				if (tournament_history_table[update_branch_addr_reg] < 2'b11) begin
+					tournament_history_table[update_branch_addr_reg] <= tournament_history_table[update_branch_addr_reg] + 1;
+				end
+				else begin
+					tournament_history_table[update_branch_addr_reg] <= 2'b11;
+				end
+			end
 		end
 	end
 	
+	// For debug purposes and simulation only, hence disabled
+	// assign selected_predictor = tournament_history_table[pc_branch_addr[3:0]][1];
+	
 	// Assign local and global prediction
 	// Use global when the 2nd bit of tournament history table is 1, vice versa
-	assign prediction = (tournament_history_table[update_branch_addr[3:0]][1] == 1'b1) ? (global_history_table[curr_global_history][1] & branch_decode_sig) : (branch_history_table[pc_branch_addr[3:0]][1] & branch_decode_sig);
+	assign prediction = (tournament_history_table[pc_branch_addr[3:0]][1] == 1'b1) ? (global_history_table[curr_global_history][1] & branch_decode_sig) : (branch_history_table[pc_branch_addr[3:0]][1] & branch_decode_sig);
 	assign out_branch_addr = pc_branch_addr + offset;
 	
 endmodule
