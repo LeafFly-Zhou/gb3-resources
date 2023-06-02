@@ -33,7 +33,7 @@ module pmu(fast_clk, clkhf_enable,clkhf_powerup,rdsp);
     //end
 
     always @(posedge fast_clk) begin
-        if (rdsp==32'h1100 && instruction_state<2) begin
+        if (rdsp==32'h1000 && instruction_state<2) begin
             instruction_state<=instruction_state+1;
         end
     end
