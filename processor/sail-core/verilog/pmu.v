@@ -33,7 +33,7 @@ module pmu(data_mem_stall_sig, clkhf_enable,clkhf_powerup,rdsp);
     //end
 
     always @(negedge data_mem_stall_sig) begin
-        if (rdsp==32'h1800 && instruction_state<2) begin
+        if (rdsp==32'h1000 && instruction_state<2) begin
             instruction_state<=instruction_state+1;
         end
     end
