@@ -1,7 +1,7 @@
 // power management unit
 
-module pmu(fast_clk, clkhf_enable,clkhf_powerup,rdsp);
-    input       fast_clk;
+module pmu(data_mem_stall_sig, clkhf_enable,clkhf_powerup,rdsp);
+    input       data_mem_stall_sig;
     input[31:0] rdsp;
     output      clkhf_enable;
     output      clkhf_powerup;
@@ -32,8 +32,8 @@ module pmu(fast_clk, clkhf_enable,clkhf_powerup,rdsp);
     //    endcase
     //end
 
-    always @(posedge fast_clk) begin
-        if (rdsp==32'h1100 && instruction_state<2) begin
+    always @(negedge data_mem_stall_sig) begin
+        if (rdsp==32'h1800 && instruction_state<2) begin
             instruction_state<=instruction_state+1;
         end
     end

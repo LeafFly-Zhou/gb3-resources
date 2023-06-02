@@ -68,7 +68,7 @@ module top (led);
 	);
 
 	pmu pmu_inst(
-		.fast_clk(clk_proc),
+		.fast_clk(data_clk_stall),
 		.clkhf_enable(clkhf_enable),
 		.clkhf_powerup(clkhf_powerup),
 		.rdsp(rdsp)
