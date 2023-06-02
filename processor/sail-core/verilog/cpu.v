@@ -481,6 +481,7 @@ module cpu(
 		.pc_branch_addr(if_id_out[31:0]),
 		.offset(imm_out),
 		.update_branch_addr(ex_mem_out[40:9]),
+		.mispredict(mistake_trigger),
 		.out_branch_addr(branch_predictor_addr),
 		.prediction(predict)
 	);
