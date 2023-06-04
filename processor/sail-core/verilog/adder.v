@@ -44,11 +44,53 @@
  */
 
 
-
 module adder(input1, input2, out);
 	input [31:0]	input1;
 	input [31:0]	input2;
+	reg zero = 1'b0;
+	reg one = 1'b1;
 	output [31:0]	out;
-
-	assign		out = input1 + input2;
+	
+	wire trash;
+	wire out_wire;
+	
+	SB_MAC16 i_sbmac16 ( // port interfaces
+		.A(input1[31:16]),
+		.B(input1[15:0]),
+		.C(input2[31:16]),
+		.D(input2[15:0]),
+		.O(out_wire),
+		.CLK(zero),
+		.CE(one),
+		.IRSTTOP(zero),
+		.IRSTBOT(zero),
+		.ORSTTOP(zero),
+		.ORSTBOT(zero),
+		.AHOLD(zero),
+		.BHOLD(zero),
+		.CHOLD(zero),
+		.DHOLD(zero),
+		.OHOLDTOP(zero),
+		.OHOLDBOT(zero),
+		.OLOADTOP(zero),
+		.OLOADBOT(zero),
+		.ADDSUBTOP(zero),
+		.ADDSUBBOT(zero),
+		.CO(trash),
+		.CI(zero),
+		.ACCUMCI(),
+		.ACCUMCO(),
+		.SIGNEXTIN(),
+		.SIGNEXTOUT()
+	);
+	
+	
+	defparam i_sbmac16.TOPADDSUB_UPPERINPUT = 1'b1;
+	defparam i_sbmac16.TOPADDSUB_CARRYSELECT = 2'b10;
+	defparam i_sbmac16.BOTADDSUB_UPPERINPUT = 1'b1;
+	defparam i_sbmac16.A_SIGNED = 1'b1;
+	defparam i_sbmac16.B_SIGNED = 1'b1;
+	defparam i_sbmac16.MODE_8x8 = 1'b1;
+	
+	assign		out = out_wire;
 endmodule

@@ -54,16 +54,18 @@
  *	field is only unique across the instructions that are actually
  *	fed to the ALU.
  */
-module alu(ALUctl, A, B, ALUOut, Branch_Enable);
+module alu(ALUctl, A, B, ALUOut, Branch_Enable, clk);
 	input [6:0]		ALUctl;
 	input [31:0]		A;
 	input [31:0]		B;
 	output reg [31:0]	ALUOut;
 	output reg		Branch_Enable;
+	input clk;
 
 	/*
 	 *	This uses Yosys's support for nonzero initial values:
 	 *
+	 
 	 *		https://github.com/YosysHQ/yosys/commit/0793f1b196df536975a044a4ce53025c81d00c7f
 	 *
 	 *	Rather than using this simulation construct (`initial`),
@@ -75,7 +77,130 @@ module alu(ALUctl, A, B, ALUOut, Branch_Enable);
 		Branch_Enable = 1'b0;
 	end
 
+	wire add_CO;
+	wire sub_CO;
+
+	reg [15:0] A_in_lower; 
+	reg [15:0] B_in_lower;
+	reg [15:0] C_in_lower;
+	reg [15:0] D_in_lower;
+
+	wire [31:0] add_dsp_out;
+	wire [31:0] sub_dsp_out;
+// 	Hack below reduces resource usage 
+	reg zero_reg = 1'b0;
+	reg one_reg = 1'b1;
+
+	// DSP for ADDITION
+	SB_MAC16 add_dsp
+		( 		// port interfaces
+		.A(A_in_lower),
+		.B(B_in_lower),
+		.C(C_in_lower),
+		.D(D_in_lower),
+		.O(add_dsp_out),
+		.CLK(clk),
+		.CE(one_reg),
+		.IRSTTOP(zero_reg),
+		.IRSTBOT(zero_reg),
+		.ORSTTOP(zero_reg),
+		.ORSTBOT(zero_reg),
+		.AHOLD(zero_reg),
+		.BHOLD(zero_reg),
+		.CHOLD(zero_reg),
+		.DHOLD(zero_reg),
+		.OHOLDTOP(zero_reg),
+		.OHOLDBOT(zero_reg),
+		.OLOADTOP(zero_reg),
+		.OLOADBOT(zero_reg),
+		.ADDSUBTOP(zero_reg),
+		.ADDSUBBOT(zero_reg),
+		.CO(add_CO),
+		.CI(zero_reg),
+		.ACCUMCI(),
+		.ACCUMCO(),
+		.SIGNEXTIN(),
+		.SIGNEXTOUT()
+		);
+		defparam add_dsp.NEG_TRIGGER = 1'b0;
+		defparam add_dsp.C_REG = 1'b0;
+		defparam add_dsp.A_REG = 1'b0;
+		defparam add_dsp.B_REG = 1'b0;
+		defparam add_dsp.D_REG = 1'b0;
+		defparam add_dsp.TOP_8x8_MULT_REG = 1'b0;
+		defparam add_dsp.BOT_8x8_MULT_REG = 1'b0;
+		defparam add_dsp.PIPELINE_16x16_MULT_REG1 = 1'b0;
+		defparam add_dsp.PIPELINE_16x16_MULT_REG2 = 1'b0;
+		defparam add_dsp.TOPOUTPUT_SELECT = 2'b00; // accum register output at O[31:16]
+		defparam add_dsp.TOPADDSUB_LOWERINPUT = 2'b00;
+		defparam add_dsp.TOPADDSUB_UPPERINPUT = 1'b1;
+		defparam add_dsp.TOPADDSUB_CARRYSELECT = 2'b10;
+		defparam add_dsp.BOTOUTPUT_SELECT = 2'b00; // accum regsiter output at O[15:0]
+		defparam add_dsp.BOTADDSUB_LOWERINPUT = 2'b00;
+		defparam add_dsp.BOTADDSUB_UPPERINPUT = 1'b1;
+		defparam add_dsp.BOTADDSUB_CARRYSELECT = 2'b00;
+		defparam add_dsp.MODE_8x8 = 1'b1;
+		defparam add_dsp.A_SIGNED = 1'b1;
+		defparam add_dsp.B_SIGNED = 1'b1;
+
+	// DSP for SUBTRACTION
+	SB_MAC16 sub_dsp
+		( 		// port interfaces
+		.A(A_in_lower),
+		.B(B_in_lower),
+		.C(C_in_lower),
+		.D(D_in_lower),
+		.O(sub_dsp_out),
+		.CLK(clk),
+		.CE(one_reg),
+		.IRSTTOP(zero_reg),
+		.IRSTBOT(zero_reg),
+		.ORSTTOP(zero_reg),
+		.ORSTBOT(zero_reg),
+		.AHOLD(zero_reg),
+		.BHOLD(zero_reg),
+		.CHOLD(zero_reg),
+		.DHOLD(zero_reg),
+		.OHOLDTOP(zero_reg),
+		.OHOLDBOT(zero_reg),
+		.OLOADTOP(zero_reg),
+		.OLOADBOT(zero_reg),
+		.ADDSUBTOP(one_reg),
+		.ADDSUBBOT(one_reg),
+		.CO(sub_CO),
+		.CI(zero_reg),
+		.ACCUMCI(),
+		.ACCUMCO(),
+		.SIGNEXTIN(),
+		.SIGNEXTOUT()
+		);
+		defparam sub_dsp.NEG_TRIGGER = 1'b0;
+		defparam sub_dsp.C_REG = 1'b0;
+		defparam sub_dsp.A_REG = 1'b0;
+		defparam sub_dsp.B_REG = 1'b0;
+		defparam sub_dsp.D_REG = 1'b0;
+		defparam sub_dsp.TOP_8x8_MULT_REG = 1'b0;
+		defparam sub_dsp.BOT_8x8_MULT_REG = 1'b0;
+		defparam sub_dsp.PIPELINE_16x16_MULT_REG1 = 1'b0;
+		defparam sub_dsp.PIPELINE_16x16_MULT_REG2 = 1'b0;
+		defparam sub_dsp.TOPOUTPUT_SELECT = 2'b00; // accum register output at O[31:16]
+		defparam sub_dsp.TOPADDSUB_LOWERINPUT = 2'b00;
+		defparam sub_dsp.TOPADDSUB_UPPERINPUT = 1'b1;
+		defparam sub_dsp.TOPADDSUB_CARRYSELECT = 2'b10;
+		defparam sub_dsp.BOTOUTPUT_SELECT = 2'b00; // accum regsiter output at O[15:0]
+		defparam sub_dsp.BOTADDSUB_LOWERINPUT = 2'b00;
+		defparam sub_dsp.BOTADDSUB_UPPERINPUT = 1'b1;
+		defparam sub_dsp.BOTADDSUB_CARRYSELECT = 2'b00;
+		defparam sub_dsp.MODE_8x8 = 1'b1;
+		defparam sub_dsp.A_SIGNED = 1'b1;
+		defparam sub_dsp.B_SIGNED = 1'b1;
+
+
 	always @(ALUctl, A, B) begin
+		A_in_lower <= A[31:16];
+		B_in_lower <= A[15:0];
+		C_in_lower <= B[31:16];
+		D_in_lower <= B[15:0];
 		case (ALUctl[3:0])
 			/*
 			 *	AND (the fields also match ANDI and LUI)
@@ -90,12 +215,12 @@ module alu(ALUctl, A, B, ALUOut, Branch_Enable);
 			/*
 			 *	ADD (the fields also match AUIPC, all loads, all stores, and ADDI)
 			 */
-			`kSAIL_MICROARCHITECTURE_ALUCTL_3to0_ADD:	ALUOut = A + B;
+			`kSAIL_MICROARCHITECTURE_ALUCTL_3to0_ADD:	ALUOut = add_dsp_out;
 
 			/*
 			 *	SUBTRACT (the fields also matches all branches)
 			 */
-			`kSAIL_MICROARCHITECTURE_ALUCTL_3to0_SUB:	ALUOut = A - B;
+			`kSAIL_MICROARCHITECTURE_ALUCTL_3to0_SUB:	ALUOut = sub_dsp_out;
 
 			/*
 			 *	SLT (the fields also matches all the other SLT variants)

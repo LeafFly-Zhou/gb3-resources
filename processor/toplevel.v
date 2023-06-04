@@ -98,9 +98,7 @@ module top (led);
 			.memwrite(data_memwrite), 
 			.memread(data_memread), 
 			.read_data(data_out),
-			.sign_mask(data_sign_mask),
-			.led(led),
-			.clk_stall(data_clk_stall)
+			.sign_mask(data_sign_mask), .led(led), .clk_stall(data_clk_stall)
 		);
 
 	assign clk_proc = (data_clk_stall) ? 1'b1 : clk;

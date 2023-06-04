@@ -76,3 +76,4 @@ module instruction_memory(addr, out);
 
 	assign out = instruction_memory[addr >> 2];
 endmodule
+
