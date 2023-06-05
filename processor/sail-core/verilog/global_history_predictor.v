@@ -40,7 +40,7 @@ module global_history_predictor(
 	// counter
 	reg [1:0]		global_history_table [255:0];
 	reg				branch_mem_sig_reg;
-	reg				actual_branch_decision_reg;
+	// reg				actual_branch_decision_reg;
 	// For initialising global_history_table
 	integer			i;
 
@@ -63,7 +63,7 @@ module global_history_predictor(
 
 	always @(negedge clk) begin
 		branch_mem_sig_reg <= branch_mem_sig;
-		actual_branch_decision_reg <= actual_branch_decision;
+		// actual_branch_decision_reg <= actual_branch_decision;
 		prev_global_history <= curr_global_history;
 	end
 
@@ -76,8 +76,8 @@ module global_history_predictor(
 	// Update the global_history_table and curr_global_history when an actual branch decision is received
 	always @(posedge clk) begin
 		if (branch_mem_sig_reg) begin
-			curr_global_history <= {curr_global_history[6:0], actual_branch_decision_reg};
-			if (actual_branch_decision_reg == 1'b1) begin
+			curr_global_history <= {curr_global_history[6:0], actual_branch_decision};
+			if (actual_branch_decision == 1'b1) begin
 				if (global_history_table[prev_global_history] < 2'b11) begin
 					global_history_table[prev_global_history] <= global_history_table[prev_global_history] + 1;
 				end

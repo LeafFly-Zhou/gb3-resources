@@ -40,7 +40,7 @@ module tournament_branch_predictor(
 	/*
 	 *	internal state
 	 */
-	reg				actual_branch_decision_reg;
+	// reg				actual_branch_decision_reg;
 	// A branch history array with 16 elements, each holding a saturating
 	// counter
 	reg [1:0]		branch_history_table [15:0];
@@ -59,9 +59,9 @@ module tournament_branch_predictor(
 	// For tournament predictor
 	// A tournament history array with 16 elements, each holding a saturating
 	// counter
-	reg [1:0]		tournament_history_table [16:0];
+	reg [1:0]		tournament_history_table [15:0];
 	reg				prev_predictor;	
-	reg				mispredict_reg;
+	// reg				mispredict_reg;
 
 	// For initialising branch_history
 	integer			i;
@@ -90,11 +90,11 @@ module tournament_branch_predictor(
 
 	always @(negedge clk) begin
 		branch_mem_sig_reg <= branch_mem_sig;
-		actual_branch_decision_reg <= actual_branch_decision;
+		// actual_branch_decision_reg <= actual_branch_decision;
 		update_branch_addr_reg <= update_branch_addr[3:0];
 		prev_global_history <= curr_global_history;
 		prev_predictor <= tournament_history_table[update_branch_addr[3:0]][1];
-		mispredict_reg <= mispredict;
+		// mispredict_reg <= mispredict;
 	end
 
 	/*
@@ -107,10 +107,10 @@ module tournament_branch_predictor(
 	always @(posedge clk) begin
 		if (branch_mem_sig_reg) begin
 			// Update curr_global_history
-			curr_global_history <= {curr_global_history[6:0], actual_branch_decision_reg};
+			curr_global_history <= {curr_global_history[6:0], actual_branch_decision};
 
 			// Check against actual branch decision
-			if (actual_branch_decision_reg == 1'b1) begin
+			if (actual_branch_decision == 1'b1) begin
 				// Update local history predictor
 				if (branch_history_table[update_branch_addr_reg] < 2'b11) begin
 					branch_history_table[update_branch_addr_reg] <= branch_history_table[update_branch_addr_reg] + 1;
@@ -147,7 +147,7 @@ module tournament_branch_predictor(
 
 			// Update tournament predictor by looking at previous predictor
 			// and mispredict flag
-			if (prev_predictor == mispredict_reg) begin
+			if (prev_predictor == mispredict) begin
 				if (tournament_history_table[update_branch_addr_reg] > 2'b00) begin
 					tournament_history_table[update_branch_addr_reg] <= tournament_history_table[update_branch_addr_reg] - 1;
 				end

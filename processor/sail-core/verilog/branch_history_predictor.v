@@ -39,10 +39,10 @@ module branch_history_predictor(
 	reg [1:0]		branch_history_table [15:0];
 	reg				branch_mem_sig_reg;
 	reg [3:0]		update_branch_addr_reg;
-	reg				actual_branch_decision_reg;
+	// reg				actual_branch_decision_reg;
 	// Declare as unsigned int using reg
-	reg [3:0]		pc_branch_target_addr;
-	reg [3:0]		update_branch_target_addr;
+	// reg [3:0]		pc_branch_target_addr;
+	// reg [3:0]		update_branch_target_addr;
 	// For initialising branch_history
 	integer			i;
 
@@ -64,7 +64,7 @@ module branch_history_predictor(
 	always @(negedge clk) begin
 		branch_mem_sig_reg <= branch_mem_sig;
 		update_branch_addr_reg <= update_branch_addr[3:0];
-		actual_branch_decision_reg <= actual_branch_decision;
+		// actual_branch_decision_reg <= actual_branch_decision;
 
 	end
 
@@ -77,7 +77,7 @@ module branch_history_predictor(
 	// Update the branch_history when an actual branch decision is received
 	always @(posedge clk) begin
 		if (branch_mem_sig_reg) begin
-			if (actual_branch_decision_reg == 1'b1) begin
+			if (actual_branch_decision == 1'b1) begin
 				if (branch_history_table[update_branch_addr_reg] < 2'b11) begin
 					branch_history_table[update_branch_addr_reg] <= branch_history_table[update_branch_addr_reg] + 1;
 				end
