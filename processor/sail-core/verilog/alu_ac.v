@@ -55,50 +55,48 @@
  *	field is only unique across the instructions that are actually
  *	fed to the ALU.
  */
- module alu(ALUctl, A, B, ALUOut, Branch_Enable);
+ module alu(ALUctl, A, B, ALUOut, Branch_Enable, clk);
 	input [6:0]		ALUctl;
 	input [31:0]		A;
 	input [31:0]		B;
-	
 	output reg [31:0]	ALUOut;
 	output reg		Branch_Enable;
+	input clk;
+	/*
+	 *	This uses Yosys's support for nonzero initial values:
+	 *
+	 
+	 *		https://github.com/YosysHQ/yosys/commit/0793f1b196df536975a044a4ce53025c81d00c7f
+	 *
+	 *	Rather than using this simulation construct (`initial`),
+	 *	the design should instead use a reset signal going to
+	 *	modules in the design.
+	 */
+	initial begin
+		ALUOut = 32'b0;
+		Branch_Enable = 1'b0;
+	end
 
-	reg clk;
-	reg dsp_ce;
-   	reg [15:0] dsp_c;
+	wire carry_add;
+	wire cary_sub;
+ 	
+	reg [15:0] dsp_c;
    	reg [15:0] dsp_a;
    	reg [15:0] dsp_b;
    	reg [15:0] dsp_d;
-   	//reg dsp_irsttop;
-   	//reg dsp_irstbot;
-   	//reg dsp_orsttop;
-   	//reg dsp_orstbot;
-   	//reg dsp_ahold;
-   	//reg dsp_bhold;
-   	//reg dsp_chold;
-   	//reg dsp_dhold;
-   	//reg dsp_oholdtop;
-   	//reg dsp_oholdbot;
-   	
-	//reg add_dsp_addsubtop;
-   	//reg add_dsp_addsubbot;
-	//reg sub_dsp_addsubtop;
-   	//reg sub_dsp_addsubbot;
+
+	wire [31:0] add_dsp_o;
+	wire [31:0] sub_dsp_o;
+	// For params, if all of them are ones or zeroes and I'm not changing this code, then I can't be asked to type out all the registers
+	reg zero_reg = 1'b0;
+	reg one_reg = 1'b1;
 
    	reg dsp_oloadtop;
    	reg dsp_oloadbot;
 	reg dsp_co;
    	reg dsp_ci;
 	//reg add_sub_toggle;
-
-	wire [31:0] add_dsp_o;
-	wire [31:0] sub_dsp_o;
-	wire carry_add;
-	wire carry_sub;
-
-	//reg zero_reg;
-	//reg one_reg;
-
+	// You COULD use this such that only one DSP need be used by Yosus, but it'd be another challenege to impl. 
 
 	SB_MAC16 add_dsp
 	( // port interfaces 
@@ -108,27 +106,23 @@
 	.D(dsp_d), 
 	.O(add_dsp_o), 
 	.CLK(clk), 
-	.CE(dsp_ce), 
-	
-
-	.IRSTTOP(0),
-	.IRSTBOT(0),
-	.ORSTTOP(0),
-	.ORSTBOT(0),
-	.AHOLD(0),
-	.BHOLD(0),
-	.CHOLD(0),
-	.DHOLD(0),
-	.OHOLDTOP(0), 
-	.OHOLDBOT(0), 
-	.OLOADTOP(0),
-	.OLOADBOT(0),
-
-	.ADDSUBTOP(0), 
-	.ADDSUBBOT(0), 
-
+	.CE(one_reg), 
+	.IRSTTOP(zero_reg),
+	.IRSTBOT(zero_reg),
+	.ORSTTOP(zero_reg),
+	.ORSTBOT(zero_reg),
+	.AHOLD(zero_reg),
+	.BHOLD(zero_reg),
+	.CHOLD(zero_reg),
+	.DHOLD(zero_reg),
+	.OHOLDTOP(zero_reg), 
+	.OHOLDBOT(zero_reg), 
+	.OLOADTOP(zero_reg),
+	.OLOADBOT(zero_reg),
+	.ADDSUBTOP(zero_reg), 
+	.ADDSUBBOT(zero_reg), 
 	.CO(carry_add), 
-	.CI(0), 
+	.CI(zero_reg), 
 	.ACCUMCI(), 
 	.ACCUMCO(), 
 	.SIGNEXTIN(), 
@@ -144,18 +138,18 @@
 	defparam add_dsp.BOT_8x8_MULT_REG = 1'b0; 
 	defparam add_dsp.PIPELINE_16x16_MULT_REG1 = 1'b0; 
 	defparam add_dsp.PIPELINE_16x16_MULT_REG2 = 1'b0; 
-	defparam add_dsp.TOPOUTPUT_SELECT = 2'b01; // accum register output at O[31:16] 
+	defparam add_dsp.TOPOUTPUT_SELECT = 2'b00; // accum register output at O[31:16] ac - b01  
 	defparam add_dsp.TOPADDSUB_LOWERINPUT = 2'b00; 
 	defparam add_dsp.TOPADDSUB_UPPERINPUT = 1'b1; 
-	defparam add_dsp.TOPADDSUB_CARRYSELECT = 2'b11; 
-	defparam add_dsp.BOTOUTPUT_SELECT = 2'b01; // accum regsiter output at O[15:0] 
+	defparam add_dsp.TOPADDSUB_CARRYSELECT = 2'b10;  // ac - b11
+	defparam add_dsp.BOTOUTPUT_SELECT = 2'b00; // accum regsiter output at O[15:0] // ac - b01 
 	defparam add_dsp.BOTADDSUB_LOWERINPUT = 2'b00; 
 	defparam add_dsp.BOTADDSUB_UPPERINPUT = 1'b1; 
 	defparam add_dsp.BOTADDSUB_CARRYSELECT = 2'b00; //bottom adder carry input 00 -> const 0 
-	defparam add_dsp.MODE_8x8 = 1'b0; 
+	defparam add_dsp.MODE_8x8 = 1'b1; // ac- 0 
 	defparam add_dsp.A_SIGNED = 1'b1; 
 	defparam add_dsp.B_SIGNED = 1'b1;
-	defparam add_dsp.MODE_8x8 = 1'b1;
+
 	//defparam add_dsp.BOTOUTPUT_SELECT = 2'b01 ;// accum regsiter output at O[15:0]. 
 	//defparam add_dsp.TOPOUTPUT_SELECT = 2'b01 ;// accum register output at O[31:16] 
 
@@ -165,32 +159,29 @@
 	.B(dsp_b), 
 	.C(dsp_c), 
 	.D(dsp_d), 
-	.O(sub_dsp_o), 
+	.O(add_dsp_o), 
 	.CLK(clk), 
-	.CE(dsp_ce), 
-	
-	.IRSTTOP(0),
-	.IRSTBOT(0),
-	.ORSTTOP(0),
-	.ORSTBOT(0),
-	.AHOLD(0),
-	.BHOLD(0),
-	.CHOLD(0),
-	.DHOLD(0),
-	.OHOLDTOP(0), 
-	.OHOLDBOT(0), 
-	.OLOADTOP(0),
-	.OLOADBOT(0),	
-	
-	.ADDSUBTOP(1), 
-	.ADDSUBBOT(1), 
-
+	.CE(one_reg), 
+	.IRSTTOP(zero_reg),
+	.IRSTBOT(zero_reg),
+	.ORSTTOP(zero_reg),
+	.ORSTBOT(zero_reg),
+	.AHOLD(zero_reg),
+	.BHOLD(zero_reg),
+	.CHOLD(zero_reg),
+	.DHOLD(zero_reg),
+	.OHOLDTOP(zero_reg), 
+	.OHOLDBOT(zero_reg), 
+	.OLOADTOP(zero_reg),
+	.OLOADBOT(zero_reg),
+	.ADDSUBTOP(one_reg), 
+	.ADDSUBBOT(one_reg), 
 	.CO(carry_sub), 
-	.CI(0), 
+	.CI(zero_reg), 
 	.ACCUMCI(), 
 	.ACCUMCO(), 
 	.SIGNEXTIN(), 
-	.SIGNEXTOUT()
+	.SIGNEXTOUT() 
 	); 
 
 	defparam sub_dsp.NEG_TRIGGER = 1'b0; 
@@ -202,31 +193,17 @@
 	defparam sub_dsp.BOT_8x8_MULT_REG = 1'b0; 
 	defparam sub_dsp.PIPELINE_16x16_MULT_REG1 = 1'b0; 
 	defparam sub_dsp.PIPELINE_16x16_MULT_REG2 = 1'b0; 
-	defparam sub_dsp.TOPOUTPUT_SELECT = 2'b01; // accum register output at O[31:16] 
+	defparam sub_dsp.TOPOUTPUT_SELECT = 2'b00; // accum register output at O[31:16] 
 	defparam sub_dsp.TOPADDSUB_LOWERINPUT = 2'b00; 
 	defparam sub_dsp.TOPADDSUB_UPPERINPUT = 1'b1; 
-	defparam sub_dsp.TOPADDSUB_CARRYSELECT = 2'b11; // Docs say this should be 11, apparently acc needs to bee 10
-	defparam sub_dsp.BOTOUTPUT_SELECT = 2'b01; // accum regsiter output at O[15:0] 
+	defparam sub_dsp.TOPADDSUB_CARRYSELECT = 2'b10; // Docs say this should be 11, apparently acc needs to bee 10
+	defparam sub_dsp.BOTOUTPUT_SELECT = 2'b00; // accum regsiter output at O[15:0] 
 	defparam sub_dsp.BOTADDSUB_LOWERINPUT = 2'b00; 
 	defparam sub_dsp.BOTADDSUB_UPPERINPUT = 1'b1; 
 	defparam sub_dsp.BOTADDSUB_CARRYSELECT = 2'b00; //bottom adder carry input 00 -> const 0 
-	defparam sub_dsp.MODE_8x8 = 1'b0; 
+	defparam sub_dsp.MODE_8x8 = 1'b1; 
 	defparam sub_dsp.A_SIGNED = 1'b1; 
 	defparam sub_dsp.B_SIGNED = 1'b1;
-	defparam sub_dsp.MODE_8x8 = 1'b1;
-
-	//defparam i_sbmac16.TOPADDSUB_UPPERINPUT = 1'b1;
-	//defparam i_sbmac16.TOPADDSUB_CARRYSELECT = 2'b10;
-	//defparam i_sbmac16.BOTADDSUB_UPPERINPUT = 1'b1;
-	//defparam i_sbmac16.A_SIGNED = 1'b1;
-	//defparam i_sbmac16.B_SIGNED = 1'b1;
-	//defparam i_sbmac16.MODE_8x8 = 1'b1;
-	//defparam add_dsp.BOTOUTPUT_SELECT = 2'b01 ;// accum regsiter output at O[15:0]. 
-	//defparam add_dsp.TOPOUTPUT_SELECT = 2'b01 ;// accum register output at O[31:16] 
-
-
-
-
 	/*
 	 *	This uses Yosys's support for nonzero initial values:
 	 *
@@ -236,43 +213,12 @@
 	 *	the design should instead use a reset signal going to
 	 *	modules in the design.
 	 */
-	initial begin
-		ALUOut = 32'b0;
-		Branch_Enable = 1'b0;
-	end
-
-	always @(ALUctl, A, B) 
-    begin
-		clk <= 1;
-		dsp_ce <= 1;
+	 
+	always @(ALUctl, A, B) begin
 		dsp_a <= A[31:16];
 		dsp_b <= A[15:0];
 		dsp_c <= B[31:16];
 		dsp_d <= B[15:0];
-		//dsp_irsttop <= 0;
-		//dsp_orsttop <=0;
-		//dsp_orstbot <=0;
-   		//dsp_ahold <=0;
-   		//dsp_bhold <= 0;
-   		//dsp_chold <= 0;
-   		//dsp_dhold <= 0;
-   		//dsp_oholdtop <= 0;
-   		//dsp_oholdbot <= 0;
-
-		//zero_reg <= 0;
-
-   		//add_dsp_addsubtop <= 0;
-   		//add_dsp_addsubbot <= 0;
-		//sub_dsp_addsubtop <= 1;
-   		//sub_dsp_addsubbot <= 1;
-   		
-		//dsp_oloadtop <= 0;
-   		//dsp_oloadbot <= 0;
-		//dsp_co <= 0;
-   		//dsp_ci <= 0;
-
-
-
 		case (ALUctl[3:0])
 			/*
 			 *	AND (the fields also match ANDI and LUI)
@@ -349,8 +295,11 @@
 			`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BNE:	Branch_Enable = !(ALUOut == 0);
 			`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BLT:	Branch_Enable = ($signed(A) < $signed(B));
 			`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BGE:	Branch_Enable = ($signed(A) >= $signed(B));
-			`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BLTU:	Branch_Enable = (sub_dsp_o < 0);
-			`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BGEU:	Branch_Enable = (sub_dsp_o > 0);
+			`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BLTU:	Branch_Enable = ($unsigned(A) < $unsigned(B));
+			`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BGEU:	Branch_Enable = ($unsigned(A) >= $unsigned(B));
+			//Change to make these functions use the DSP
+			//`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BLTU:	Branch_Enable = (sub_dsp_o < 0);
+			//`kSAIL_MICROARCHITECTURE_ALUCTL_6to4_BGEU:	Branch_Enable = (sub_dsp_o > 0);
 
 			default:					Branch_Enable = 1'b0;
 		endcase

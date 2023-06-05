@@ -65,7 +65,6 @@ module alu(ALUctl, A, B, ALUOut, Branch_Enable, clk);
 	/*
 	 *	This uses Yosys's support for nonzero initial values:
 	 *
-	 
 	 *		https://github.com/YosysHQ/yosys/commit/0793f1b196df536975a044a4ce53025c81d00c7f
 	 *
 	 *	Rather than using this simulation construct (`initial`),
@@ -139,7 +138,7 @@ module alu(ALUctl, A, B, ALUOut, Branch_Enable, clk);
 		defparam add_dsp.BOTADDSUB_LOWERINPUT = 2'b00;
 		defparam add_dsp.BOTADDSUB_UPPERINPUT = 1'b1;
 		defparam add_dsp.BOTADDSUB_CARRYSELECT = 2'b00;
-		defparam add_dsp.MODE_8x8 = 1'b1;
+		defparam add_dsp.MODE_8x8 = 1'b0;
 		defparam add_dsp.A_SIGNED = 1'b1;
 		defparam add_dsp.B_SIGNED = 1'b1;
 
@@ -191,7 +190,7 @@ module alu(ALUctl, A, B, ALUOut, Branch_Enable, clk);
 		defparam sub_dsp.BOTADDSUB_LOWERINPUT = 2'b00;
 		defparam sub_dsp.BOTADDSUB_UPPERINPUT = 1'b1;
 		defparam sub_dsp.BOTADDSUB_CARRYSELECT = 2'b00;
-		defparam sub_dsp.MODE_8x8 = 1'b1;
+		defparam sub_dsp.MODE_8x8 = 1'b0;
 		defparam sub_dsp.A_SIGNED = 1'b1;
 		defparam sub_dsp.B_SIGNED = 1'b1;
 
