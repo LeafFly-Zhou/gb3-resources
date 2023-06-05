@@ -47,8 +47,8 @@
 module adder(input1, input2, out);
 	input [31:0]	input1;
 	input [31:0]	input2;
-	reg zero = 1'b0;
-	reg one = 1'b1;
+	reg zero_reg = 1'b0;
+	reg one_reg = 1'b1;
 	output [31:0]	out;
 	
 	wire carry_out;
