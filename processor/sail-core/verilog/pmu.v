@@ -9,7 +9,8 @@ module pmu(fast_clk, clkhf_enable,clkhf_powerup,rdsp);
     integer     state=0;
     integer     instruction_state=0;
 
-    assign clkhf_powerup=(instruction_state==0);
+    //assign clkhf_powerup=(instruction_state==0);
+    assign clkhf_powerup=1'b1;
     assign clkhf_enable=clkhf_powerup;
     //always@(posedge slow_clk) begin
     //    case(state)
@@ -32,11 +33,11 @@ module pmu(fast_clk, clkhf_enable,clkhf_powerup,rdsp);
     //    endcase
     //end
 
-    always @(posedge fast_clk) begin
-        if (rdsp==32'h1000 && instruction_state<2) begin
-            instruction_state<=instruction_state+1;
-        end
-    end
+    //always @(posedge fast_clk) begin
+    //    if (rdsp==32'h1000 && instruction_state<2) begin
+    //        instruction_state<=instruction_state+1;
+    //    end
+    //end
     
 
 endmodule
