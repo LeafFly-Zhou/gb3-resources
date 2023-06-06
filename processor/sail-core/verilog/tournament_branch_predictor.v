@@ -49,12 +49,12 @@ module tournament_branch_predictor(
 
 	// For global predictor
 	// A register for holding current global history
-	reg [7:0]		curr_global_history;
+	reg [5:0]		curr_global_history;
 	// A register for holding the previous global history for updating table
-	reg [7:0]		prev_global_history;
-	// A global history array with 256 elements, each holding a saturating
+	reg [5:0]		prev_global_history;
+	// A global history array with 64 elements, each holding a saturating
 	// counter
-	reg [1:0]		global_history_table [255:0];
+	reg [1:0]		global_history_table [63:0];
 
 	// For tournament predictor
 	// A tournament history array with 16 elements, each holding a saturating
@@ -78,13 +78,13 @@ module tournament_branch_predictor(
 	 */
 	initial begin
 		prev_predictor <= 0;
-		curr_global_history <= 8'b0;
-		prev_global_history <= 8'b0;
+		curr_global_history <= 6'b0;
+		prev_global_history <= 6'b0;
 		for (i=0; i < 16; i=i+1) begin
 			branch_history_table[i] = 2'b10;
 			tournament_history_table[i] = 2'b01;
 		end
-		for (i=0; i < 256; i=i+1)
+		for (i=0; i < 64; i=i+1)
 			global_history_table[i] = 2'b10;
 	end
 
@@ -107,7 +107,7 @@ module tournament_branch_predictor(
 	always @(posedge clk) begin
 		if (branch_mem_sig_reg) begin
 			// Update curr_global_history
-			curr_global_history <= {curr_global_history[6:0], actual_branch_decision};
+			curr_global_history <= {curr_global_history[4:0], actual_branch_decision};
 
 			// Check against actual branch decision
 			if (actual_branch_decision == 1'b1) begin
