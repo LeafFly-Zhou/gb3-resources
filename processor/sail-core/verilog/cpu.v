@@ -51,11 +51,8 @@ module cpu(
 			data_mem_WrData,
 			data_mem_memwrite,
 			data_mem_memread,
-			data_mem_sign_mask,
-			rdsp,
+			data_mem_sign_mask
 		);
-
-	output[31:0] rdsp;
 	/*
 	 *	Input Clock
 	 */
@@ -254,8 +251,7 @@ module cpu(
 			.rdAddrA(inst_mux_out[19:15]),
 			.rdDataA(regA_out),
 			.rdAddrB(inst_mux_out[24:20]),
-			.rdDataB(regB_out),
-			.rdsp(rdsp)
+			.rdDataB(regB_out)
 		);
 
 	imm_gen immediate_generator(

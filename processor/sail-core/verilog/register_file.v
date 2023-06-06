@@ -44,7 +44,7 @@
 
 
 
-module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB, rdsp);
+module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB);
 	input		clk;
 	input		write;
 	input [4:0]	wrAddr;
@@ -53,7 +53,6 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB, r
 	output [31:0]	rdDataA;
 	input [4:0]	rdAddrB;
 	output [31:0]	rdDataB;
-	output reg[31:0] rdsp;
 
 	/*
 	 *	register file, 32 x 32-bit registers
@@ -104,7 +103,6 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB, r
 		rdAddrB_buf	<= rdAddrB;
 		regDatA		<= regfile[rdAddrA];
 		regDatB		<= regfile[rdAddrB];
-		rdsp <= regfile[2];
 	end
 
 	assign	rdDataA = ((wrAddr_buf==rdAddrA_buf) & write_buf & wrAddr_buf!=32'b0) ? wrData_buf : regDatA;

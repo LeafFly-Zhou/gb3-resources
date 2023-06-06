@@ -54,7 +54,6 @@ module top (led);
 	wire		clkhf_enable;	// Plock enable
 	wire		clkhf_powerup;
 
-	wire [31:0]	rdsp;
 
 
 	/*
@@ -65,13 +64,6 @@ module top (led);
 		.CLKHFEN(clkhf_enable),
 		.CLKHFPU(clkhf_powerup),
 		.CLKHF(clk)
-	);
-
-	pmu pmu_inst(
-		.fast_clk(clk_proc),
-		.clkhf_enable(clkhf_enable),
-		.clkhf_powerup(clkhf_powerup),
-		.rdsp(rdsp)
 	);
 	/*
 	 *	Memory interface
@@ -100,8 +92,7 @@ module top (led);
 		.data_mem_WrData(data_WrData),
 		.data_mem_memwrite(data_memwrite),
 		.data_mem_memread(data_memread),
-		.data_mem_sign_mask(data_sign_mask),
-		.rdsp(rdsp)
+		.data_mem_sign_mask(data_sign_mask)
 	);
 
 	instruction_memory inst_mem( 
