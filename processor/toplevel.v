@@ -51,8 +51,8 @@ module top (led);
 	wire		clk;
 	wire		data_mem_gclk;
 	
-	wire		clkhf_enable;	// Plock enable
-	wire		clkhf_powerup;
+	reg		clkhf_enable=1'b1;	// Plock enable
+	reg		clkhf_powerup=1'b1;
 
 
 
